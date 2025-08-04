@@ -1,7 +1,9 @@
 <template>
     <div class="container">
         <div class="text-container">
-            <h1 class="text" :style="transformStyle">{{ testText }}</h1>
+            <div class="scale-container">
+                <h1 class="text" :style="transformStyle">{{ testText }}</h1>
+            </div>
         </div>
         <div class="controls">
             <div class="control-item">
@@ -28,7 +30,23 @@
                 <span>{{ fontSize }}px</span>
             </div>
             <div class="control-item">
-                <label>拉伸程度：</label>
+                <label>
+                    焦点距离
+                    <div class="tooltip">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="17" r="1" fill="currentColor"/>
+                        </svg>
+                        <div class="tooltip-content">
+                            表示眼睛到焦点的距离：<br>
+                            为0px则类似贴着焦点来看，形变程度更大；<br>
+                            数字越大表明从越远处来看，形变程度更小；<br>
+                            不想设置则填无
+                        </div>
+                    </div>
+                    ：
+                </label>
                 <input type="text" v-model="perspective" />
                 <span>{{ perspective }}px</span>
             </div>
@@ -64,7 +82,7 @@
             </div>
             <div class="transform-result">
                 <p>{{ transformText }}</p>
-                <button @click="copyTransformText" class="copy-btn" v-if="transformText !== '默认值'">
+                <button @click="copyTransformText" class="copy-btn" v-if="transformText">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -82,7 +100,7 @@ import { computed, ref } from 'vue'
 
 const defaultValues = {
   transformOrigin: 'center center',
-  perspective: 400,
+  perspective: '无',
   rotateY: 0,
   rotateX: 0,
   scaleX: 1,
@@ -109,17 +127,21 @@ const copyError = ref(false)
 const transformStyle = computed(() => {
     return `font-size: ${fontSize.value}px; 
 		transform-origin: ${transformOrigin.value}; 
-		transform: scale(0.33333) perspective(${perspective.value}px) rotateY(${rotateY.value}deg) rotateX(${rotateX.value}deg) scaleX(${scaleX.value}) scaleY(${scaleY.value}) skewX(${skewX.value}deg) skewY(${skewY.value}deg);`
+		transform: perspective(${perspective.value === '无' ? 'none' : perspective.value + 'px'}) rotateY(${rotateY.value}deg) rotateX(${rotateX.value}deg) scaleX(${scaleX.value}) scaleY(${scaleY.value}) skewX(${skewX.value}deg) skewY(${skewY.value}deg);`
 })
 
 const transformText = computed(() => {
   const parts: string[] = []
 
-  parts.push(`变换焦点:${transformOrigin.value}`)
-
-  if (Number(perspective.value) !== defaultValues.perspective) {
-    parts.push(`拉伸程度:${perspective.value}px`)
+  if (transformOrigin.value !== defaultValues.transformOrigin) {
+    // 变换焦点
+    parts.push(`变换焦点:${transformOrigin.value}`)
   }
+
+  if (perspective.value !== defaultValues.perspective) {
+    parts.push(`焦点距离:${perspective.value}px`)
+  }
+  
   if (Number(rotateY.value) !== defaultValues.rotateY) {
     parts.push(`Y轴旋转角度:${rotateY.value}deg`)
   }
@@ -209,7 +231,7 @@ const copyTransformText = async () => {
 .text-container {
     width: 640px;
     height: 360px;
-		overflow: hidden;
+	overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -218,6 +240,16 @@ const copyTransformText = async () => {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     margin-right: 30px;
     border: 1px solid #e0e6ed;
+}
+
+.scale-container {
+    width: 1920px;
+    height: 1080px;
+    transform-origin: center center;
+    transform: scale(0.33333);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .controls {
@@ -244,6 +276,59 @@ const copyTransformText = async () => {
     color: #374151;
     min-width: 80px;
     text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    color: #6b7280;
+    margin: 0 2px;
+}
+
+.tooltip:hover {
+    color: #374151;
+}
+
+.tooltip-content {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: #1f2937;
+    color: white;
+    font-size: 12px;
+    line-height: 1.4;
+    border-radius: 6px;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: all 0.2s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    text-align: start;
+}
+
+.tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 16px;
+    border: 5px solid transparent;
+    border-top-color: #1f2937;
+}
+
+.tooltip:hover .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 input[type="text"], input[type="number"], select {
