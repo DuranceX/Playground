@@ -3,7 +3,6 @@ import HomeView from '../views/DanmuView.vue'
 import TestView from '../views/TestView.vue'
 import JsonView from '../views/JsonView.vue'
 import TransformDemo from '../views/TransformDemo.vue'
-import TransformTest from '@/views/TransformTest.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,14 +23,9 @@ const router = createRouter({
       component: JsonView
     },
     {
-      path: '/transform',
-      name: 'transform',
+      path: '/transform-demo',
+      name: 'transform-demo',
       component: TransformDemo
-    },
-    {
-      path: '/transform-test',
-      name: 'transform-test',
-      component: TransformTest
     }
   ],
 })
