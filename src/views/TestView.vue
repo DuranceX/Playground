@@ -20,7 +20,7 @@ onMounted(() => {
   
   // 1. 设置物理分辨率 (Backing Store)
   canvas.width = logicalWidth * dpr;
-  canvas.height = logicalHeight * dpr;
+  canvas.height = logicalHeight * dpr; 
 
   // 2. 设置 CSS 显示尺寸 (Layout Size)
   // 我们仍然强制使用 !important 来确保它100%生效
