@@ -2,17 +2,36 @@
     <div class="container">
         <div class="text-container">
             <div class="scale-container">
-                <h1 class="text" :style="transformStyle">{{ testText }}</h1>
+                <div v-for="(line, index) in textLines" :key="index" v-show="line.text.trim()">
+                    <h1 class="text" :style="getTransformStyle(index)">{{ line.text }}</h1>
+                </div>
             </div>
         </div>
         <div class="controls">
+            <!-- 卡片切换 Radio -->
+            <div class="card-selector">
+                <label class="radio-label">
+                    <input type="radio" value="0" v-model="currentCard" />
+                    <span>标题文本1</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" value="1" v-model="currentCard" />
+                    <span>标题文本2</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" value="2" v-model="currentCard" />
+                    <span>标题文本3</span>
+                </label>
+            </div>
+            
+            <!-- 当前选中卡片的配置项 -->
             <div class="control-item">
                 <label>测试文本：</label>
-                <input type="text" v-model="testText" />
+                <input type="text" v-model="currentLine.text" />
             </div>
             <div class="control-item">
                 <label>变换焦点：</label>
-                <select v-model="transformOrigin">
+                <select v-model="currentLine.transformOrigin">
                     <option value="left top">左上</option>
                     <option value="left center">左中</option>
                     <option value="left bottom">左下</option>
@@ -24,10 +43,10 @@
                     <option value="right bottom">右下</option>
                 </select>
             </div>
-						<div class="control-item">
+            <div class="control-item">
                 <label>文字大小：</label>
-                <input type="text" v-model="fontSize" />
-                <span>{{ fontSize }}px</span>
+                <input type="number" v-model="currentLine.fontSize" min="20" max="300" />
+                <span>{{ currentLine.fontSize }}px</span>
             </div>
             <div class="control-item">
                 <label>
@@ -47,46 +66,54 @@
                     </div>
                     ：
                 </label>
-                <input type="text" v-model="perspective" />
-                <span>{{ perspective }}px</span>
+                <input type="text" v-model="currentLine.perspective" />
+                <span>{{ currentLine.perspective }}px</span>
             </div>
             <div class="control-item">
                 <label>Y轴旋转：</label>
-                <input type="range" min="-180" max="180" v-model="rotateY" />
-                <span>{{ rotateY }}°</span>
+                <input type="range" min="-180" max="180" v-model="currentLine.rotateY" />
+                <span>{{ currentLine.rotateY }}°</span>
             </div>
             <div class="control-item">
                 <label>X轴旋转：</label>
-                <input type="range" min="-180" max="180" v-model="rotateX" />
-                <span>{{ rotateX }}°</span>
+                <input type="range" min="-180" max="180" v-model="currentLine.rotateX" />
+                <span>{{ currentLine.rotateX }}°</span>
             </div>
             <div class="control-item">
                 <label>横向缩放：</label>
-                <input type="range" min="0.1" max="3" step="0.1" v-model="scaleX" />
-                <span>{{ scaleX }}</span>
+                <input type="range" min="0.1" max="3" step="0.1" v-model="currentLine.scaleX" />
+                <span>{{ currentLine.scaleX }}</span>
             </div>
             <div class="control-item">
                 <label>纵向缩放：</label>
-                <input type="range" min="0.1" max="3" step="0.1" v-model="scaleY" />
-                <span>{{ scaleY }}</span>
+                <input type="range" min="0.1" max="3" step="0.1" v-model="currentLine.scaleY" />
+                <span>{{ currentLine.scaleY }}</span>
             </div>
             <div class="control-item">
                 <label>横向斜切：</label>
-                <input type="range" min="-60" max="60" v-model="skewX" />
-                <span>{{ skewX }}°</span>
+                <input type="range" min="-60" max="60" v-model="currentLine.skewX" />
+                <span>{{ currentLine.skewX }}°</span>
             </div>
             <div class="control-item">
                 <label>纵向斜切：</label>
-                <input type="range" min="-60" max="60" v-model="skewY" />
-                <span>{{ skewY }}°</span>
+                <input type="range" min="-60" max="60" v-model="currentLine.skewY" />
+                <span>{{ currentLine.skewY }}°</span>
             </div>
             <div class="transform-result">
-                <p>{{ transformText }}</p>
-                <button @click="copyTransformText" class="copy-btn" v-if="transformText">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
+                <p>{{ currentTransformText }}</p>
+                <div class="action-buttons">
+                    <button @click="copyTransformText" class="action-btn copy-btn" v-if="currentTransformText" title="复制变换参数">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button @click="pasteTransformText" class="action-btn paste-btn" title="粘贴变换参数">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                    </button>
+                </div>
                 <div v-if="copyMessage" class="copy-message" :class="{ 'error': copyError }">
                     {{ copyMessage }}
                 </div>
@@ -99,6 +126,7 @@
 import { computed, ref } from 'vue'
 
 const defaultValues = {
+  text: '',
   transformOrigin: 'center center',
   perspective: '无',
   rotateY: 0,
@@ -106,66 +134,112 @@ const defaultValues = {
   scaleX: 1,
   scaleY: 1,
   skewX: 0,
-  skewY: 0
+  skewY: 0,
+  fontSize: 150
 }
 
-const perspective = ref(defaultValues.perspective)
-const rotateY = ref(defaultValues.rotateY)
-const rotateX = ref(defaultValues.rotateX)
-const scaleX = ref(defaultValues.scaleX)
-const scaleY = ref(defaultValues.scaleY)
-const skewX = ref(defaultValues.skewX)
-const skewY = ref(defaultValues.skewY)
-const transformOrigin = ref(defaultValues.transformOrigin)
-const testText = ref('这是一个示范标题')
-const fontSize = ref(150) // 默认字体大小
+// 多行文本配置
+const textLines = ref([
+  {
+    text: '这是一个示范标题',
+    transformOrigin: 'center center',
+    perspective: '无',
+    rotateY: 0,
+    rotateX: 0,
+    scaleX: 1,
+    scaleY: 1,
+    skewX: 0,
+    skewY: 0,
+    fontSize: 150
+  },
+  {
+    text: '第二行文本',
+    transformOrigin: 'center center',
+    perspective: '无',
+    rotateY: 0,
+    rotateX: 0,
+    scaleX: 1,
+    scaleY: 1,
+    skewX: 0,
+    skewY: 0,
+    fontSize: 150
+  },
+  {
+    text: '',
+    transformOrigin: 'center center',
+    perspective: '无',
+    rotateY: 0,
+    rotateX: 0,
+    scaleX: 1,
+    scaleY: 1,
+    skewX: 0,
+    skewY: 0,
+    fontSize: 150
+  }
+])
+
+// 当前选中的卡片索引
+const currentCard = ref(0)
+
+// 当前配置对象
+const currentLine = computed(() => textLines.value[currentCard.value])
+
+// 只显示非空的文本行
+const visibleLines = computed(() => {
+  return textLines.value.filter(line => line.text.trim())
+})
 
 // 复制提示相关状态
 const copyMessage = ref('')
 const copyError = ref(false)
 
-const transformStyle = computed(() => {
-    return `font-size: ${fontSize.value}px; 
-		transform-origin: ${transformOrigin.value}; 
-		transform: perspective(${perspective.value === '无' ? 'none' : perspective.value + 'px'}) rotateY(${rotateY.value}deg) rotateX(${rotateX.value}deg) scaleX(${scaleX.value}) scaleY(${scaleY.value}) skewX(${skewX.value}deg) skewY(${skewY.value}deg);`
-})
+// 获取指定行的变换样式
+const getTransformStyle = (lineIndex: number) => {
+  const line = textLines.value[lineIndex]
+  if (!line) return ''
+  
+  return `font-size: ${line.fontSize}px; 
+    transform-origin: ${line.transformOrigin}; 
+    transform: perspective(${line.perspective === '无' ? 'none' : line.perspective + 'px'}) rotateY(${line.rotateY}deg) rotateX(${line.rotateX}deg) scaleX(${line.scaleX}) scaleY(${line.scaleY}) skewX(${line.skewX}deg) skewY(${line.skewY}deg);`
+}
 
-const transformText = computed(() => {
+// 当前卡片的变换参数文本
+const currentTransformText = computed(() => {
+  const line = currentLine.value
   const parts: string[] = []
 
-  if (transformOrigin.value !== defaultValues.transformOrigin) {
-    // 变换焦点
-    parts.push(`变换焦点:${transformOrigin.value}`)
+  if (line.transformOrigin !== defaultValues.transformOrigin) {
+    parts.push(`变换焦点:${line.transformOrigin}`)
   }
 
-  if (perspective.value !== defaultValues.perspective) {
-    parts.push(`焦点距离:${perspective.value}px`)
+  if (line.perspective !== defaultValues.perspective) {
+    parts.push(`焦点距离:${line.perspective}px`)
   }
   
-  if (Number(rotateY.value) !== defaultValues.rotateY) {
-    parts.push(`Y轴旋转角度:${rotateY.value}deg`)
+  if (Number(line.rotateY) !== defaultValues.rotateY) {
+    parts.push(`Y轴旋转角度:${line.rotateY}deg`)
   }
-  if (Number(rotateX.value) !== defaultValues.rotateX) {
-    parts.push(`X轴旋转角度:${rotateX.value}deg`)
+  if (Number(line.rotateX) !== defaultValues.rotateX) {
+    parts.push(`X轴旋转角度:${line.rotateX}deg`)
   }
-  if (Number(scaleX.value) !== defaultValues.scaleX) {
-    parts.push(`横向缩放:${scaleX.value}`)
+  if (Number(line.scaleX) !== defaultValues.scaleX) {
+    parts.push(`横向缩放:${line.scaleX}`)
   }
-  if (Number(scaleY.value) !== defaultValues.scaleY) {
-    parts.push(`纵向缩放:${scaleY.value}`)
+  if (Number(line.scaleY) !== defaultValues.scaleY) {
+    parts.push(`纵向缩放:${line.scaleY}`)
   }
-  if (Number(skewX.value) !== defaultValues.skewX) {
-    parts.push(`横向斜切:${skewX.value}deg`)
+  if (Number(line.skewX) !== defaultValues.skewX) {
+    parts.push(`横向斜切:${line.skewX}deg`)
   }
-  if (Number(skewY.value) !== defaultValues.skewY) {
-    parts.push(`纵向斜切:${skewY.value}deg`)
+  if (Number(line.skewY) !== defaultValues.skewY) {
+    parts.push(`纵向斜切:${line.skewY}deg`)
   }
   return "-("+parts.join(',')+")"
 })
 
 const copyTransformText = async () => {
   try {
-    const textToCopy = transformText.value || '默认值'
+    const textToCopy = currentTransformText.value || '默认值'
     await navigator.clipboard.writeText(textToCopy)
     
     copyMessage.value = '复制成功'
@@ -179,7 +253,7 @@ const copyTransformText = async () => {
     // 降级方案：使用 document.execCommand
     try {
       const textArea = document.createElement('textarea')
-      textArea.value = transformText.value
+      textArea.value = currentTransformText.value
       document.body.appendChild(textArea)
       textArea.select()
       document.execCommand('copy')
@@ -204,6 +278,85 @@ const copyTransformText = async () => {
   }
 }
 
+const pasteTransformText = async () => {
+  try {
+    const clipboardText = await navigator.clipboard.readText()
+    parseTransformText(clipboardText)
+    
+    copyMessage.value = '粘贴成功'
+    copyError.value = false
+    
+    setTimeout(() => {
+      copyMessage.value = ''
+    }, 3000)
+    
+  } catch (err) {
+    copyMessage.value = '粘贴失败'
+    copyError.value = true
+    
+    setTimeout(() => {
+      copyMessage.value = ''
+      copyError.value = false
+    }, 3000)
+  }
+}
+
+const parseTransformText = (text: string) => {
+  try {
+    // 移除开头的 "-(" 和结尾的 ")"
+    const cleanText = text.replace(/^-\(/, '').replace(/\)$/, '')
+    
+    // 按逗号分割参数
+    const params = cleanText.split(',')
+    
+    const line = currentLine.value
+    
+    params.forEach(param => {
+      const [key, value] = param.split(':')
+      if (!key || !value) return
+      
+      const trimmedKey = key.trim()
+      const trimmedValue = value.trim()
+      
+      switch (trimmedKey) {
+        case '变换焦点':
+          line.transformOrigin = trimmedValue
+          break
+        case '焦点距离':
+          line.perspective = trimmedValue.replace('px', '')
+          break
+        case 'Y轴旋转角度':
+          line.rotateY = Number(trimmedValue.replace('deg', ''))
+          break
+        case 'X轴旋转角度':
+          line.rotateX = Number(trimmedValue.replace('deg', ''))
+          break
+        case '横向缩放':
+          line.scaleX = Number(trimmedValue)
+          break
+        case '纵向缩放':
+          line.scaleY = Number(trimmedValue)
+          break
+        case '横向斜切':
+          line.skewX = Number(trimmedValue.replace('deg', ''))
+          break
+        case '纵向斜切':
+          line.skewY = Number(trimmedValue.replace('deg', ''))
+          break
+      }
+    })
+  } catch (err) {
+    console.error('解析失败:', err)
+    copyMessage.value = '格式错误'
+    copyError.value = true
+    
+    setTimeout(() => {
+      copyMessage.value = ''
+      copyError.value = false
+    }, 3000)
+  }
+}
+
 </script>
 
 <style scoped>
@@ -217,21 +370,10 @@ const copyTransformText = async () => {
     box-sizing: border-box;
 }
 
-.text {
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		font-size: 150px;
-    transform: scale(0.3333); /* 640/1920 = 1/3 */
-		white-space: nowrap;;
-
-}
-
 .text-container {
     width: 640px;
     height: 360px;
-	overflow: hidden;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -248,8 +390,23 @@ const copyTransformText = async () => {
     transform-origin: center center;
     transform: scale(0.33333);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+.text-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.text {
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
 }
 
 .controls {
@@ -262,6 +419,56 @@ const copyTransformText = async () => {
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border: 1px solid #e0e6ed;
+}
+
+.card-selector {
+    padding: 12px 16px;
+    background: #fafbfc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.card-selector label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.radio-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    font-size: 13px;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+.radio-label:hover {
+    background: #e5e7eb;
+}
+
+.radio-label input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.radio-label input[type="radio"]:checked + span {
+    color: #3b82f6;
+    font-weight: 500;
 }
 
 .control-item {
@@ -401,17 +608,23 @@ span {
     font-size: 13px;
     color: #64748b;
     line-height: 1.4;
-    padding-right: 35px;
+    padding-right: 70px;
 }
 
-.copy-btn {
+.action-buttons {
     position: absolute;
     top: 12px;
     right: 12px;
+    display: flex;
+    gap: 4px;
+}
+
+.action-btn {
     background: transparent;
     border: none;
     color: #6b7280;
     cursor: pointer;
+    padding: 4px;
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -419,13 +632,18 @@ span {
     transition: all 0.2s ease;
 }
 
-.copy-btn:hover {
+.action-btn:hover {
     background: #e5e7eb;
     color: #374151;
 }
 
-.copy-btn:active {
+.action-btn:active {
     transform: scale(0.95);
+}
+
+.paste-btn:hover {
+    background: #dbeafe;
+    color: #2563eb;
 }
 
 .copy-message {
